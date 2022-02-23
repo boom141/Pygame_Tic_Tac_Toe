@@ -1,6 +1,6 @@
 
 import pygame
-from random import seed, randint
+from random import choice
 import os
 
 
@@ -15,10 +15,9 @@ Window  = pygame.display.set_mode((Width,Height))
 Combi_ = [ [0,1,2], [3,4,5], [6,7,8],  
 [0,3,6], [1,4,7], [2,5,8], [0,4,8], [2,4,6],]
 
-# constant/global variables.
+# constant variables.
 FPS = 60
 Image_Width, Image_Height = 90 ,90
-Turn_ = True
 
 # initialize Images for the game: Xs ,Os and board.
 X_Image = pygame.image.load(os.path.join('Asset', 'X_2.png'))
@@ -29,26 +28,34 @@ O_ = pygame.transform.scale(O_Image, (Image_Width, Image_Height))
 
 Table_Image = pygame.image.load(os.path.join('Asset', 'Table2.png'))
 
-# function for the versus computer
+# function for the versus computer.
 def Versus_AI(Container_List, Board_List):
-    seed(1)
     Computer_ = O_
-    while True:
-        Rand_index = randint(0,9)
-        if(Board_List[Rand_index] is not X_ or 
-            Board_List[Rand_index] is not O_):
-            
-             Window.blit(Computer_,(Container_List[Rand_index].x + 5,
-              Container_List[Rand_index].y + 5))
-        
+    Random_List = []
+
+# to make the A.I avoid the containers that has already element inside.
+    for i in range(9):
+        if isinstance(Board_List[i], str):
+            Random_List.append(i)
+        else:
+            pass
+    
+    Random_Index = choice(Random_List)
+
+    Window.blit(Computer_,(Container_List[Random_Index].x + 5,
+    Container_List[Random_Index].y + 5))
+    Board_List[Random_Index] = Computer_
+
+    return Board_List    
+
 # function for declaring the winner.
-def Declare_Winner(Player_Winner, Board_):
+def Declare_Winner(Player_Winner, Height_Width, Board_):
     Font_ = pygame.font.Font(os.path.join('Asset/font', 'ChalkFont.ttf'), 30)
     Text_Winner = Font_.render(Player_Winner, False, 'white')
     Font_ = pygame.font.Font(os.path.join('Asset/font', 'ChalkFont.ttf'), 30)
     Text_Reset = Font_.render('Press Space Key To Reset', False, 'white')
     
-    Window.blit(Text_Winner, (130, 30))
+    Window.blit(Text_Winner, Height_Width)
     Window.blit(Text_Reset, (62, 430))
 
 # algorithm for making the board unclikable when the game ends.
@@ -58,31 +65,30 @@ def Declare_Winner(Player_Winner, Board_):
         else:
             Board_[i] = 0
 
-# function to check if there is already a winner
+# function to check if there is already a winner.
 def Check_Winner(Board_):
     Winner = None
+    Draw = 0
     for i in range(8):    
       if(Board_[Combi_[i][0]] == Board_[Combi_[i][1]] == Board_[Combi_[i][2]]):
                Winner = Board_[Combi_[i][0]]
     
     if Winner == X_:
-        Declare_Winner('Player One Won', Board_)
-    elif Winner == O_:
-        Declare_Winner('Player Two Won', Board_)
+        Declare_Winner('Player One Won', (130, 30), Board_)
+    if Winner == O_:
+        Declare_Winner('Player Two Won', (130, 30), Board_)
     else:
-        pass
+# Algorithm to check if the game is draw.
+      for element in Board_:
+         if element == X_ or element == O_:
+                Draw += 1
+    
+      if Draw == 8 or Draw == 9:
+         Declare_Winner('Draw', (210, 30), Board_)
 
-# function for the user action when clicking
+# function for the user action when clicking.
 def User_Action(Logic_Data, Container_List, Board_List):
-    global Turn_
-
-    if Turn_:
-        Player_ = X_
-        Turn_ = False
-    else:
-        Player_ = O_
-        Turn_ = True
-
+    Player_ = X_
 # Algorithm to avoid multiple clicks on the same container
     for con in Container_List:
         if (Logic_Data and con.collidepoint(pygame.mouse.get_pos()) and 
@@ -90,13 +96,15 @@ def User_Action(Logic_Data, Container_List, Board_List):
 
             Window.blit(Player_,(con.x + 5, con.y + 5))
             Board_List[Container_List.index(con)] = Player_
-            Versus_AI(Container_List,Board_List)
-            Check_Winner(Board_List)
+            Board_ = Versus_AI(Container_List,Board_List)
+            
+            Check_Winner(Board_)
         else:
-            Turn_ = not Turn_
+            pass
+
     pygame.display.update()
 
-# funtion for displaying the board in the game
+# funtion for displaying the board in the game.
 def Draw_Grid(Container_List, Dimension):
     Window.fill((0,0,0))
     for y in range(3):
@@ -110,9 +118,8 @@ def Draw_Grid(Container_List, Dimension):
     Window.blit(Table_Image, (60,60))
     pygame.display.update()
 
-# main funtion of the game 
+# main funtion of the game.
 def main():
-    global Turn_
     run = True
     clock = pygame.time.Clock()
 
@@ -132,10 +139,9 @@ def main():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 User_Action(True, Container_List, Board_List)
 
-# alorothm to reset the game
+# alorothm to reset the game.
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
-                    Turn_ = not Turn_
                     main()
                 
 if __name__ == "__main__":
