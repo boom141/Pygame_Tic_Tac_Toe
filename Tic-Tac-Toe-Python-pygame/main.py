@@ -1,3 +1,4 @@
+import sys
 import pygame
 from random import choice
 import os
@@ -132,13 +133,14 @@ def main():
         clock.tick(FPS)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                run = False
-                pygame.quit()
-     
+                    run = False
+                    pygame.quit()
+                    sys.exit()
+
             if event.type == pygame.MOUSEBUTTONDOWN:
                 User_Action(True, Container_List, Board_List)
 
-# alorothm to reset the game.
+# alorithm to reset the game.
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
                     main()
